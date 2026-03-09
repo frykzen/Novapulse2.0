@@ -1,0 +1,1900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NovaPulse 2.0</title>
+<script src="/vendor/react.js" onerror="this._err=true"></script>
+<script src="/vendor/react-dom.js" onerror="this._err=true"></script>
+<script src="/vendor/babel.js" onerror="this._err=true"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg0:#060810;--bg1:#0b0e1a;--bg2:#111422;--bg3:#181c2e;--bg4:#1f2438;
+  --border:#252a40;--border2:#2e3450;
+  --cyan:#00e5ff;--cyan2:#00b8d9;--violet:#7c3aed;--violet2:#9f5ff7;
+  --green:#00e596;--yellow:#fbbf24;--red:#f43f5e;--orange:#fb923c;
+  --txt0:#e8eaff;--txt1:#8890b8;--txt2:#454d70;
+}
+html,body,#root{width:100%;height:100%;background:var(--bg0);color:var(--txt0);
+  font-family:'Space Mono',monospace;overflow:hidden;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg1)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade-in{animation:fadeIn .3s ease both}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,#00e5ff08 2px,#00e5ff08 4px)}
+
+.topbar{display:flex;align-items:center;padding:0 18px;height:50px;background:var(--bg1);
+  border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
+.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+.logo{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:700;color:var(--cyan);
+  letter-spacing:3px;display:flex;align-items:center;gap:9px}
+.logo svg{width:22px;height:22px}
+.logo-sub{font-size:10px;color:var(--txt2);letter-spacing:1px;font-weight:400;margin-left:2px}
+.topbar-r{display:flex;gap:16px;margin-left:auto;align-items:center;font-size:11px}
+.tb-stat{display:flex;align-items:center;gap:6px;color:var(--txt1)}
+.tb-val{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600}
+.tb-time{font-size:10px;color:var(--txt2);padding-left:14px;border-left:1px solid var(--border)}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+
+.layout{display:flex;flex:1;overflow:hidden}
+.sidebar{width:196px;flex-shrink:0;background:var(--bg1);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:14px 0}
+.main{flex:1;overflow-y:auto;padding:18px 20px;background:var(--bg0)}
+
+.nav-sect{padding:0 12px;margin:8px 0 4px;font-size:9px;letter-spacing:2px;
+  color:var(--txt2);text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 15px;cursor:pointer;
+  font-size:11px;color:var(--txt1);border-left:2px solid transparent;transition:all .14s}
+.nav-item:hover{color:var(--txt0);background:var(--bg2)}
+.nav-item.active{color:var(--cyan);background:var(--bg2);border-left-color:var(--cyan)}
+.nav-item svg{width:13px;height:13px;flex-shrink:0}
+.nav-badge{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:999px;
+  background:var(--bg3);color:var(--cyan)}
+.nav-div{height:1px;background:var(--border);margin:10px 12px}
+
+.tier-box{margin:auto 11px 10px;padding:11px 12px;background:var(--bg2);
+  border:1px solid var(--border);border-radius:3px}
+.tier-lbl{font-size:9px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px}
+.tier-stars{font-size:15px;letter-spacing:1px;margin-bottom:3px}
+.tier-name{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600}
+.tier-gpu{font-size:9px;color:var(--txt2);margin-top:4px;word-break:break-word;line-height:1.4}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;
+  border-bottom:1px solid var(--border)}
+.ct{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.ct svg{width:12px;height:12px}
+.cb{padding:13px}
+
+.grid{display:grid;gap:12px;margin-bottom:12px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+
+.gauge-card{display:flex;flex-direction:column;align-items:center;padding:14px 10px}
+.gauge-wrap{position:relative;width:108px;height:68px}
+.gauge-wrap svg{width:108px;height:68px}
+.gauge-val{position:absolute;bottom:0;left:50%;transform:translateX(-50%);text-align:center}
+.gauge-num{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;line-height:1}
+.gauge-unit{font-size:8px;color:var(--txt2)}
+.gauge-lbl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:2px;text-transform:uppercase;color:var(--txt1);margin-top:6px}
+.gauge-sub{font-size:9px;color:var(--txt2);margin-top:2px}
+
+canvas.spark{display:block;width:100%;height:58px}
+.sk-hdr{padding:11px 13px 7px;display:flex;align-items:center;justify-content:space-between}
+.sk-ttl{font-size:10px;color:var(--txt1);letter-spacing:1px}
+.sk-val{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700}
+
+.bar-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.bar-lbl{font-size:9px;color:var(--txt2);width:38px;text-align:right;flex-shrink:0}
+.bar-tr{flex:1;height:5px;background:var(--bg3);border-radius:1px;overflow:hidden}
+.bar-fi{height:100%;border-radius:1px;transition:width .5s}
+.bar-v{font-size:9px;color:var(--txt1);width:30px;text-align:right}
+
+.sr{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;
+  border-bottom:1px solid var(--border);font-size:10px}
+.sr:last-child{border-bottom:none}
+.sk{color:var(--txt2)}
+.sv{color:var(--txt0);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:500}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);gap:12px}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:11px;color:var(--txt0);font-weight:600}
+.set-desc{font-size:9px;color:var(--txt2);margin-top:2px}
+.set-sel{background:var(--bg2);border:1px solid var(--border);color:var(--txt0);padding:4px 7px;border-radius:4px;font-size:10px;cursor:pointer;flex-shrink:0}
+.toggle{width:32px;height:17px;border-radius:9px;background:var(--border);position:relative;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--cyan)}
+.tknob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;transition:left .2s}
+.toggle.on .tknob{left:17px}
+
+.proc-t{width:100%;border-collapse:collapse;font-size:10px}
+.proc-t th{padding:5px 8px;font-size:9px;letter-spacing:1px;color:var(--txt2);
+  background:var(--bg3);text-align:left;font-weight:400;text-transform:uppercase}
+.proc-t td{padding:4px 8px;border-bottom:1px solid var(--border)}
+.proc-t tr:hover td{background:var(--bg3)55}
+
+.gt{width:100%;border-collapse:collapse}
+.gt th{padding:7px 11px;font-size:9px;letter-spacing:1.5px;color:var(--txt2);
+  background:var(--bg3);text-align:left;font-weight:400;text-transform:uppercase;white-space:nowrap}
+.gt td{padding:6px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+.gt tr:hover td{background:var(--bg3)44}
+.gn{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600}
+.gp{font-size:9px;color:var(--txt2)}
+.fps{font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700}
+.frat{font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:700}
+.gf-bar{width:140px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.gf-fill{height:100%;border-radius:2px}
+
+.gfilter{display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.gfilter input{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--txt0);
+  padding:7px 11px;font-family:'Space Mono',monospace;font-size:10px;outline:none;border-radius:2px}
+.gfilter input:focus{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan)22}
+.gfilter input::placeholder{color:var(--txt2)}
+
+.opt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px}
+.opt-btn{padding:9px 12px;background:var(--bg2);border:1px solid var(--border2);
+  color:var(--txt1);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;
+  border-radius:2px;text-align:left;transition:all .13s;line-height:1.6}
+.opt-btn:hover{border-color:var(--cyan)55;color:var(--txt0)}
+.opt-btn.sel{border-color:var(--cyan);color:var(--cyan);background:var(--cyan)0d}
+.run-btn{padding:10px 22px;background:var(--cyan);color:var(--bg0);
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;
+  border:none;cursor:pointer;border-radius:2px;display:inline-flex;align-items:center;gap:7px;
+  transition:all .14s;text-transform:uppercase}
+.run-btn:hover:not(:disabled){background:var(--cyan2)}
+.run-btn:disabled{background:var(--bg4);color:var(--txt2);cursor:not-allowed}
+.ai-out{background:var(--bg1);border:1px solid var(--border);padding:14px 16px;
+  font-size:10px;line-height:1.85;min-height:180px;max-height:400px;overflow-y:auto;
+  white-space:pre-wrap;border-radius:2px;margin-top:11px;color:var(--txt0)}
+
+.key-row{display:flex;gap:7px;margin-bottom:10px}
+.key-in{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--txt0);
+  padding:8px 11px;font-family:'Space Mono',monospace;font-size:10px;outline:none;border-radius:2px}
+.key-in:focus{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan)1a}
+.key-btn{padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);
+  font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;border-radius:2px;white-space:nowrap}
+.key-btn:hover{border-color:var(--cyan)55;color:var(--cyan)}
+.status{font-size:10px;margin-bottom:9px;min-height:15px}
+.s-ok{color:var(--green)}.s-err{color:var(--red)}.s-load{color:var(--yellow);animation:pulse 1s infinite}
+
+.temp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:7px}
+.tp{padding:9px 11px;background:var(--bg3);border:1px solid var(--border);border-radius:3px}
+.tp-n{font-size:8px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.tp-v{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700}
+
+.net-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.net-row:last-child{border-bottom:none}
+.nl{font-size:10px;color:var(--txt2)}
+.nv{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600}
+
+.ptitle{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ptitle svg{width:15px;height:15px;flex-shrink:0}
+.ptitle::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2),transparent)}
+
+.core-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ci{display:flex;align-items:center;gap:4px}
+.cid{font-size:8px;color:var(--txt2);width:16px}
+.cbar{flex:1;height:5px;background:var(--bg3);border-radius:1px;overflow:hidden}
+.cfill{height:100%;border-radius:1px;transition:width .5s}
+.cpct{font-size:8px;color:var(--txt1);width:26px;text-align:right}
+
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:18px;margin-bottom:12px}
+.sc-t{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--cyan);margin-bottom:3px}
+.sc-s{font-size:10px;color:var(--txt2);margin-bottom:12px}
+.sc-div{height:1px;background:var(--border);margin:10px 0}
+.spec-grid{display:grid;grid-template-columns:repeat(2,1fr)}
+.spec-item{padding:7px 10px;border-bottom:1px solid var(--border)}
+.spec-k{font-size:8px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.spec-v{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:500;word-break:break-word}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--cyan);
+  border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0}
+
+.chat-wrap{display:flex;flex-direction:column;gap:8px;margin-top:11px}
+.chat-row{display:flex;gap:7px;align-items:flex-end}
+.chat-in{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--txt0);
+  padding:9px 12px;font-family:'Space Mono',monospace;font-size:10px;outline:none;border-radius:2px;
+  resize:none;line-height:1.6;min-height:38px}
+.chat-in:focus{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan)1a}
+.chat-in::placeholder{color:var(--txt2)}
+.chat-send{padding:9px 14px;background:var(--cyan);color:var(--bg0);font-family:'Rajdhani',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:1px;border:none;cursor:pointer;border-radius:2px;
+  white-space:nowrap;transition:background .13s}
+.chat-send:hover:not(:disabled){background:var(--cyan2)}
+.chat-send:disabled{background:var(--bg4);color:var(--txt2);cursor:not-allowed}
+
+.bm-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.bm-card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:16px}
+.bm-lbl{font-size:9px;color:var(--txt2);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.bm-score{font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;line-height:1}
+.bm-bar{height:5px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
+.bm-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.bm-overall{grid-column:1/-1;display:flex;align-items:center;gap:20px;padding:20px}
+.bm-big{font-family:'Rajdhani',sans-serif;font-size:64px;font-weight:700;line-height:1}
+.bm-desc{flex:1}
+.bm-title{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;margin-bottom:4px}
+.bm-sub{font-size:10px;color:var(--txt2);line-height:1.8}
+
+/* ── History Chart ── */
+.hist-wrap{margin-bottom:12px}
+.hist-label{font-size:9px;color:var(--txt2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;display:flex;justify-content:space-between}
+.hist-svg{width:100%;overflow:visible;display:block}
+.hist-grid-line{stroke:var(--border);stroke-width:.5;stroke-dasharray:2 4}
+.hist-axis{font-size:8px;fill:var(--txt2);font-family:'Space Mono',monospace}
+.hist-time-controls{display:flex;gap:6px;margin-bottom:10px}
+.hist-btn{padding:4px 10px;background:var(--bg3);border:1px solid var(--border2);color:var(--txt2);
+  font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;border-radius:2px;transition:all .12s}
+.hist-btn.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan)11}
+.hist-card{background:var(--bg1);border:1px solid var(--border);border-radius:3px;padding:14px 16px;margin-bottom:10px}
+.hist-stat-row{display:flex;gap:18px;margin-bottom:6px}
+.hist-stat{display:flex;flex-direction:column}
+.hist-stat-lbl{font-size:8px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase}
+.hist-stat-val{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;line-height:1.2}
+
+/* ── Process Manager ── */
+.pm-bar{height:3px;background:var(--bg3);border-radius:1px;overflow:hidden;margin-top:2px;width:60px}
+.pm-fill{height:100%;border-radius:1px}
+.pm-table{width:100%;border-collapse:collapse}
+.pm-table th{padding:6px 10px;font-size:8px;letter-spacing:1.5px;color:var(--txt2);background:var(--bg3);text-align:left;font-weight:400;text-transform:uppercase;white-space:nowrap;cursor:pointer;user-select:none}
+.pm-table th:hover{color:var(--txt0)}
+.pm-table td{padding:5px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.pm-table tr:hover td{background:var(--bg3)55}
+.pm-name{font-size:10px;font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-val{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600}
+.pm-btn{padding:3px 7px;background:var(--bg4);border:1px solid var(--border2);color:var(--txt2);
+  font-family:'Space Mono',monospace;font-size:8px;cursor:pointer;border-radius:2px;transition:all .1s;white-space:nowrap}
+.pm-btn:hover{border-color:var(--red)88;color:var(--red)}
+.pm-btn.prio:hover{border-color:var(--yellow)88;color:var(--yellow)}
+.pm-search{background:var(--bg2);border:1px solid var(--border2);color:var(--txt0);
+  padding:7px 11px;font-family:'Space Mono',monospace;font-size:10px;outline:none;border-radius:2px;width:100%;margin-bottom:10px}
+.pm-search:focus{border-color:var(--cyan)}
+.pm-select{background:var(--bg2);border:1px solid var(--border2);color:var(--txt0);padding:3px 6px;
+  font-family:'Space Mono',monospace;font-size:9px;border-radius:2px;cursor:pointer}
+
+/* ── Cleaner ── */
+.cl-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.cl-row:last-child{border-bottom:none}
+.cl-check{width:14px;height:14px;accent-color:var(--cyan);cursor:pointer;flex-shrink:0}
+.cl-name{font-size:10px;font-weight:600;flex:1}
+.cl-size{font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;min-width:60px;text-align:right}
+.cl-count{font-size:9px;color:var(--txt2);min-width:60px;text-align:right}
+.cl-total{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;font-size:10px;color:var(--txt2)}
+.cl-ram-box{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.startup-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:10px}
+.startup-hive{padding:1px 5px;background:var(--bg4);border-radius:2px;font-size:8px;color:var(--txt2);white-space:nowrap;flex-shrink:0}
+
+/* ── Launcher ── */
+.launcher-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;margin-bottom:14px}
+.launcher-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;overflow:hidden;
+  cursor:pointer;transition:all .14s;position:relative}
+.launcher-card:hover{border-color:var(--cyan)66;transform:translateY(-1px)}
+.launcher-card:active{transform:translateY(0)}
+.launcher-img{width:100%;aspect-ratio:460/215;object-fit:cover;background:var(--bg3);display:block}
+.launcher-name{font-size:9px;font-weight:600;padding:7px 8px 2px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.launcher-meta{font-size:8px;color:var(--txt2);padding:0 8px 7px;display:flex;justify-content:space-between}
+.launcher-src{padding:2px 5px;border-radius:2px;font-size:8px;letter-spacing:.5px}
+.launcher-src.steam{background:#1b2838;color:#66c0f4}
+.launcher-src.epic{background:#2a2a2a;color:#fff}
+.launcher-launch-btn{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:#000a;opacity:0;transition:opacity .14s;font-family:'Rajdhani',sans-serif;
+  font-size:16px;font-weight:700;color:var(--cyan);letter-spacing:2px}
+.launcher-card:hover .launcher-launch-btn{opacity:1}
+.launcher-scan-btn{padding:10px 22px;background:var(--bg3);border:1px solid var(--border2);color:var(--txt1);
+  font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;border-radius:2px;
+  cursor:pointer;transition:all .13s;text-transform:uppercase}
+.launcher-scan-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+
+/* ── Monitor Display ── */
+.mon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+.mon-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:16px;position:relative}
+.mon-card.primary{border-color:var(--cyan)66}
+.mon-primary-badge{position:absolute;top:10px;right:10px;padding:2px 6px;background:var(--cyan)22;
+  color:var(--cyan);border-radius:2px;font-size:8px;letter-spacing:1px}
+.mon-res{font-family:'Rajdhani',sans-serif;font-size:28px;font-weight:700;line-height:1;color:var(--cyan);margin:6px 0}
+.mon-hz{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:var(--green)}
+.mon-name{font-size:9px;color:var(--txt2);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mon-rows{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.mon-row{display:flex;justify-content:space-between;font-size:9px;color:var(--txt2)}
+.mon-row span{color:var(--txt1)}
+.mon-display-diagram{position:relative;margin:10px auto}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="np-loader" style="position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#060810;z-index:99999;font-family:'Space Mono',monospace">
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+  <div style="color:#00e5ff;font-size:14px;letter-spacing:3px">NOVAPULSE 2.0</div>
+  <div id="np-loader-msg" style="color:#454d70;font-size:10px;letter-spacing:1px">INITIALIZING…</div>
+  <div id="np-loader-err" style="display:none;color:#f43f5e;font-size:11px;max-width:420px;text-align:center;line-height:2;border:1px solid #f43f5e33;padding:16px 20px;border-radius:3px">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;letter-spacing:2px">⚠ FAILED TO LOAD SCRIPTS</div>
+    <div>React/Babel could not be fetched from the internet.</div>
+    <div style="margin-top:8px;color:#8890b8">Run <span style="color:#00e5ff">python server.py</span> — it will auto-download<br/>the required files on first launch.</div>
+  </div>
+</div>
+<script>
+// Show error if scripts didn't load after a timeout
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    if (!window.React || !window.Babel) {
+      document.getElementById('np-loader-msg').style.display = 'none';
+      document.getElementById('np-loader-err').style.display = 'block';
+    }
+  }, 4000);
+});
+// Hide loader once React mounts (called from App component)
+window.__npLoaderDone = function() {
+  var el = document.getElementById('np-loader');
+  if (el) { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(function(){ el.style.display='none'; }, 300); }
+};
+</script>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback} = React;
+const API = 'http://localhost:7842/api';
+const TNAMES = ['Integrated','Entry','Mid-Low','Mid Range','High End','Ultra'];
+const TCOLS  = ['#454d70','#f43f5e','#fbbf24','#00e596','#00e5ff','#9f5ff7'];
+
+const fpsCol = f => f<20?'#f43f5e':f<40?'#fb923c':f<60?'#fbbf24':f<100?'#00e596':f<144?'#00e5ff':'#9f5ff7';
+const fpsLbl = f => f<20?'Unplayable':f<40?'Struggles':f<60?'Playable':f<100?'Smooth':f<144?'High FPS':'Buttery';
+// Returns real hex — safe for both CSS and Canvas API
+const vCol   = (v,w=70,d=85) => v>=d?'#f43f5e':v>=w?'#fbbf24':'#00e596';
+
+/* Icons */
+const I = {
+  lay: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+  cpu: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/></svg>,
+  gam: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="9" y1="12" x2="15" y2="12"/><circle cx="18.5" cy="10.5" r="1" fill="currentColor"/><circle cx="18.5" cy="13.5" r="1" fill="currentColor"/></svg>,
+  ai:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>,
+  set: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+  tmp: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>,
+  net: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+  hdd: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>,
+  gpu: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="7" width="20" height="10" rx="1"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><line x1="5" y1="7" x2="5" y2="4"/><line x1="9" y1="7" x2="9" y2="4"/><line x1="13" y1="7" x2="13" y2="4"/><line x1="17" y1="7" x2="17" y2="4"/></svg>,
+  logo:<svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" strokeWidth="1.5"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+  chat:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+  bm:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+  hist:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+  proc:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
+  clean:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+  launch:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+  mon:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,
+  aud:  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>,
+};
+
+/* Sparkline */
+function Sparkline({data,color,height=58}){
+  const ref=useRef(null);
+  useEffect(()=>{
+    const c=ref.current; if(!c) return;
+    const W=c.clientWidth||200,H=height;
+    c.width=W; c.height=H;
+    const ctx=c.getContext('2d');
+    ctx.clearRect(0,0,W,H);
+    const pts=data, n=pts.length; if(n<2) return;
+    const xs=pts.map((_,i)=>(i/(n-1))*W);
+    const ys=pts.map(v=>H-(v/100)*H*0.88-4);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,color+'55'); g.addColorStop(1,color+'04');
+    ctx.beginPath(); ctx.moveTo(0,H);
+    xs.forEach((x,i)=>ctx.lineTo(x,ys[i]));
+    ctx.lineTo(W,H); ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(xs[0],ys[0]);
+    for(let i=1;i<n;i++) ctx.lineTo(xs[i],ys[i]);
+    ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.stroke();
+    const lx=xs[n-1],ly=ys[n-1];
+    ctx.shadowBlur=8; ctx.shadowColor=color;
+    ctx.beginPath(); ctx.arc(lx,ly,3,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+    ctx.shadowBlur=0;
+  },[data,color,height]);
+  return <canvas ref={ref} className="spark" style={{height}} />;
+}
+
+/* Semi-gauge */
+function Gauge({value,color}){
+  const r=43,cx=54,cy=56;
+  const pct=Math.min(1,Math.max(0,value/100));
+  const toXY=deg=>{const rd=(180-deg)*Math.PI/180;return{x:cx+r*Math.cos(rd),y:cy-r*Math.sin(rd)}};
+  const ang=pct*180, lg=ang>180?1:0;
+  const en=toXY(ang);
+  const trackD=`M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+  const fillD=ang>0.5?`M ${cx-r} ${cy} A ${r} ${r} 0 ${lg} 1 ${en.x} ${en.y}`:'';
+  const col=value>=85?'#f43f5e':value>=70?'#fbbf24':color;
+  return (
+    <div className="gauge-wrap">
+      <svg viewBox="0 0 108 68">
+        <path d={trackD} fill="none" stroke="var(--bg3)" strokeWidth="8" strokeLinecap="round"/>
+        {fillD&&<path d={fillD} fill="none" stroke={col} strokeWidth="8" strokeLinecap="round"
+          style={{filter:`drop-shadow(0 0 5px ${col}99)`}}/>}
+      </svg>
+      <div className="gauge-val">
+        <div className="gauge-num" style={{color:col}}>{Math.round(value)}<span style={{fontSize:10}}>%</span></div>
+      </div>
+    </div>
+  );
+}
+
+/* useHistory */
+function useHist(v,n=60){
+  const r=useRef(Array(n).fill(0));
+  useEffect(()=>{r.current=[...r.current.slice(-(n-1)),v];},[v]);
+  return r.current;
+}
+
+/* SparkCard */
+function SparkCard({title,value,color,history}){
+  const col=vCol(value);
+  return (
+    <div className="card" style={{padding:0}}>
+      <div className="sk-hdr">
+        <span className="sk-ttl">{title}</span>
+        <span className="sk-val" style={{color:col}}>{value.toFixed(1)}%</span>
+      </div>
+      <Sparkline data={history} color={col}/>
+    </div>
+  );
+}
+
+/* Bar */
+function Bar({label,value,max=100,color,showVal=true}){
+  const pct=Math.min(100,(value/max)*100);
+  const col=color||vCol(value);
+  return (
+    <div className="bar-row">
+      {label&&<div className="bar-lbl">{label}</div>}
+      <div className="bar-tr"><div className="bar-fi" style={{width:`${pct}%`,background:col}}/></div>
+      {showVal&&<div className="bar-v">{Math.round(value)}%</div>}
+    </div>
+  );
+}
+
+/* StatRow */
+const SR = ({k,v}) => <div className="sr"><span className="sk">{k}</span><span className="sv">{v}</span></div>;
+
+/* ─── OVERVIEW ────────────────────────────────────────────────────────────── */
+function Overview({sys,stats}){
+  const cpuH=useHist(stats.cpu||0), ramH=useHist(stats.ram||0), gpuH=useHist(stats.gpu||0);
+  const disk=sys.disks?.[0];
+  const gauges=[
+    {lb:'CPU',  v:stats.cpu||0,  col:'#00e5ff',  sub:`${stats.cpu_freq||0} GHz`},
+    {lb:'RAM',  v:stats.ram||0,  col:'#00e596', sub:`${stats.ram_used||0}/${stats.ram_total||0} GB`},
+    {lb:'GPU',  v:stats.gpu||0,  col:'#9f5ff7',sub:stats.gpu_mem_total?`${stats.gpu_mem_used}/${stats.gpu_mem_total}MB`:'N/A'},
+    {lb:'DISK', v:disk?.percent||0,col:'#fbbf24',sub:disk?`${disk.used_gb}/${disk.total_gb}GB`:''},
+  ];
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.lay} Overview</div>
+      <div className="grid g4">
+        {gauges.map(g=>(
+          <div key={g.lb} className="card">
+            <div className="gauge-card">
+              <Gauge value={g.v} color={g.col}/>
+              <div className="gauge-lbl" style={{color:vCol(g.v)}}>{g.lb}</div>
+              <div className="gauge-sub">{g.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="grid g3">
+        <SparkCard title="CPU Usage" value={stats.cpu||0} history={cpuH}/>
+        <SparkCard title="RAM Usage" value={stats.ram||0} history={ramH}/>
+        <SparkCard title="GPU Usage" value={stats.gpu||0} history={gpuH}/>
+      </div>
+      <div className="grid g2">
+        <div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--cyan)'}}>{I.cpu} CPU & Memory</div></div>
+          <div className="cb">
+            {[['CPU',sys.cpu_name],['Cores/Threads',`${sys.cpu_cores}C / ${sys.cpu_threads}T`],
+              ['Max Freq',`${sys.cpu_freq_max} GHz`],['RAM',`${sys.ram_gb} GB ${sys.ram_type}`],
+              ['RAM Used',`${stats.ram_used||0} / ${stats.ram_total||0} GB`],['Swap',`${stats.swap||0}%`]]
+              .map(([k,v])=><SR key={k} k={k} v={v}/>)}
+          </div>
+        </div>
+        <div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--violet2)'}}>{I.gpu} GPU & System</div></div>
+          <div className="cb">
+            {[['GPU',sys.gpu_name],['GPU Tier',`${sys.gpu_tier}/5 — ${TNAMES[sys.gpu_tier]||'?'}`],
+              ['OS',sys.os],['Hostname',sys.hostname],['Arch',sys.arch],['Uptime',sys.uptime]]
+              .map(([k,v])=><SR key={k} k={k} v={v}/>)}
+          </div>
+        </div>
+      </div>
+      <div className="grid g2">
+        <div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--yellow)'}}>{I.tmp} Temperatures</div></div>
+          <div className="cb">
+            {!Object.keys(stats.temps||{}).length
+              ? <span style={{fontSize:10,color:'var(--txt2)'}}>No sensor data</span>
+              : <div className="temp-grid">
+                  {Object.entries(stats.temps||{}).map(([k,v])=>{
+                    const c=v>85?'var(--red)':v>70?'var(--yellow)':'var(--green)';
+                    return <div key={k} className="tp"><div className="tp-n">{k}</div><div className="tp-v" style={{color:c}}>{v}°</div></div>;
+                  })}
+                </div>
+            }
+          </div>
+        </div>
+        <div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--orange)'}}>{I.hdd} Storage</div></div>
+          <div className="cb">
+            {(sys.disks||[]).map(d=>(
+              <div key={d.mountpoint} style={{marginBottom:10}}>
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                  <span style={{fontSize:10,color:'var(--txt1)'}}>{d.mountpoint} <span style={{color:'var(--txt2)',fontSize:9}}>({d.fstype})</span></span>
+                  <span style={{fontSize:10,color:'var(--txt2)'}}>{d.used_gb}/{d.total_gb} GB</span>
+                </div>
+                <Bar value={d.percent} color={d.percent>85?'var(--red)':d.percent>70?'var(--yellow)':'var(--cyan)'}/>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MONITOR ─────────────────────────────────────────────────────────────── */
+function Monitor({sys,stats,cfg,fmtTemp}){
+  const cpuH=useHist(stats.cpu||0),ramH=useHist(stats.ram||0),gpuH=useHist(stats.gpu||0);
+  const showCores=cfg?.show_cores!==false;
+  const showProcs=cfg?.show_procs!==false;
+  const showNet=cfg?.show_network!==false;
+  const fmt=fmtTemp||(t=>`${t}°C`);
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.cpu} Live Monitor</div>
+      <div className="grid g3">
+        <SparkCard title="CPU Usage" value={stats.cpu||0} history={cpuH}/>
+        <SparkCard title="RAM Usage" value={stats.ram||0} history={ramH}/>
+        <SparkCard title="GPU Usage" value={stats.gpu||0} history={gpuH}/>
+      </div>
+      <div className="grid g2">
+        {showCores&&<div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--cyan)'}}>{I.cpu} Per-Core</div>
+            <span style={{fontSize:9,color:'var(--txt2)'}}>{sys.cpu_threads} threads</span>
+          </div>
+          <div className="cb">
+            <div className="core-grid">
+              {(stats.cpu_cores||[]).map((v,i)=>{
+                const c=v>85?'var(--red)':v>60?'var(--yellow)':'var(--cyan)';
+                return <div key={i} className="ci">
+                  <div className="cid">C{i}</div>
+                  <div className="cbar"><div className="cfill" style={{width:`${v}%`,background:c}}/></div>
+                  <div className="cpct">{Math.round(v)}%</div>
+                </div>;
+              })}
+            </div>
+          </div>
+        </div>}
+        {showNet&&<div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--yellow)'}}>{I.net} Network</div></div>
+          <div className="cb">
+            {[['↑ Upload',`${stats.net_up||0} KB/s`,'var(--cyan)'],
+              ['↓ Download',`${stats.net_down||0} KB/s`,'var(--green)'],
+              ['Sent',`${stats.net_sent_mb||0} MB`,''],
+              ['Received',`${stats.net_recv_mb||0} MB`,'']
+            ].map(([l,v,c])=>(
+              <div key={l} className="net-row">
+                <span className="nl">{l}</span>
+                <span className="nv" style={{color:c||'var(--txt0)'}}>{v}</span>
+              </div>
+            ))}
+            {stats.gpu_mem_total>0&&<>
+              <div style={{height:1,background:'var(--border)',margin:'6px 0'}}/>
+              <div className="net-row"><span className="nl">GPU VRAM</span>
+                <span className="nv" style={{color:'var(--violet2)'}}>{stats.gpu_mem_used}/{stats.gpu_mem_total} MB</span></div>
+              <div className="net-row"><span className="nl">GPU Temp</span>
+                <span className="nv" style={{color:vCol(stats.gpu_temp,70,85)}}>{fmt(stats.gpu_temp)}</span></div>
+            </>}
+          </div>
+        </div>}
+      </div>
+      {showProcs&&<div className="card">
+        <div className="ch"><div className="ct" style={{color:'var(--cyan)'}}>{I.cpu} Top Processes</div></div>
+        <div style={{overflowX:'auto'}}>
+          <table className="proc-t">
+            <thead><tr><th>PID</th><th>Name</th><th>CPU%</th><th>MEM%</th><th>Status</th></tr></thead>
+            <tbody>
+              {(stats.processes||[]).slice(0,parseInt(cfg?.proc_count)||8).map(p=>(
+                <tr key={p.pid}>
+                  <td style={{color:'var(--txt2)',fontSize:9}}>{p.pid}</td>
+                  <td style={{fontFamily:'Rajdhani,sans-serif',fontSize:13,fontWeight:600}}>{p.name}</td>
+                  <td style={{fontFamily:'Rajdhani,sans-serif',fontSize:13,color:p.cpu>50?'var(--red)':p.cpu>20?'var(--yellow)':'var(--txt0)'}}>{p.cpu}%</td>
+                  <td style={{fontFamily:'Rajdhani,sans-serif',fontSize:12,color:'var(--txt1)'}}>{p.mem}%</td>
+                  <td style={{fontSize:9,color:'var(--txt2)',letterSpacing:1}}>{p.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+/* ─── GAMES ───────────────────────────────────────────────────────────────── */
+function Games({sys,games,cfg}){
+  const [q,setQ]=useState('');
+  const tier=sys.gpu_tier||1;
+  const fpsTarget=parseInt(cfg?.fps_target)||60;
+  const shown=games.filter(g=>!q||g.name.toLowerCase().includes(q.toLowerCase())||g.preset.toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.gam} Game Performance</div>
+      <div className="card" style={{padding:'11px 13px',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}}>
+        <div>
+          <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:13,fontWeight:600,color:'var(--txt1)',marginBottom:2}}>{sys.gpu_name}</div>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:15,letterSpacing:2,color:TCOLS[tier]}}>{'★'.repeat(tier)}{'☆'.repeat(5-tier)}</span>
+            <span style={{fontFamily:'Rajdhani,sans-serif',fontSize:14,fontWeight:700,color:TCOLS[tier]}}>Tier {tier}/5 — {TNAMES[tier]}</span>
+          </div>
+        </div>
+        <span style={{fontSize:9,color:'var(--txt2)'}}>FPS target: <b style={{color:'var(--cyan)'}}>{fpsTarget}</b> · highlight = games that hit target</span>
+      </div>
+      <div className="gfilter">
+        <input placeholder="Search games..." value={q} onChange={e=>setQ(e.target.value)}/>
+        <span style={{fontSize:10,color:'var(--txt2)',whiteSpace:'nowrap'}}>{shown.length} games</span>
+      </div>
+      <div className="card">
+        <div style={{overflowX:'auto'}}>
+          <table className="gt">
+            <thead><tr><th>Game</th><th>Preset</th><th>FPS</th><th>Rating</th><th>Bar</th></tr></thead>
+            <tbody>
+              {shown.map((g,i)=>{
+                const fps=g.fps[Math.min(tier,g.fps.length-1)];
+                const col=fpsCol(fps);
+                const pct=Math.min(100,(fps/300)*100);
+                const hitsTarget=fps>=fpsTarget;
+                return <tr key={i} style={hitsTarget?{background:'var(--cyan)08'}:{}}>
+                  <td><div className="gn" style={hitsTarget?{color:'var(--cyan)'}:{}}>{g.name}{hitsTarget&&<span style={{marginLeft:5,fontSize:8,color:'var(--cyan)',opacity:.7}}>✓{fpsTarget}</span>}</div></td>
+                  <td><span className="gp">{g.preset}</span></td>
+                  <td><span className="fps" style={{color:col}}>{fps}</span></td>
+                  <td><span className="frat" style={{color:col}}>{fpsLbl(fps)}</span></td>
+                  <td><div className="gf-bar"><div className="gf-fill" style={{width:`${pct}%`,background:col}}/></div></td>
+                </tr>;
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── AI ──────────────────────────────────────────────────────────────────── */
+function AI({sys,stats}){
+  const [key,setKey]=useState('');
+  const [showK,setShowK]=useState(false);
+  const [ptype,setPtype]=useState('general');
+  const [out,setOut]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [aiStatus,setAiStatus]=useState('');
+  const [aiStype,setAiStype]=useState('');
+  const [keySaveMsg,setKeySaveMsg]=useState('');
+  const [chatQ,setChatQ]=useState('');
+  const [chatOut,setChatOut]=useState('');
+  const [chatLoading,setChatLoading]=useState(false);
+  const outRef=useRef(null);
+  const chatRef=useRef(null);
+
+  useEffect(()=>{
+    fetch(`${API}/config`).then(r=>r.json()).then(d=>{if(d.groq_api_key) setKey(d.groq_api_key);}).catch(()=>{});
+  },[]);
+
+  const saveKey=async()=>{
+    setKeySaveMsg('Saving…');
+    try{
+      const r=await fetch(`${API}/config`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({groq_api_key:key})});
+      const d=await r.json();
+      setKeySaveMsg(d.ok?'✓ Saved':'✗ '+( d.error||'Failed'));
+    }catch(e){ setKeySaveMsg('✗ '+e.message); }
+    setTimeout(()=>setKeySaveMsg(''),3000);
+  };
+
+  const doStream=async(url,body,setO,setL,setS,setSt,ref,header)=>{
+    if(!key.trim()){setS('Enter API key first');setSt('s-err');return;}
+    setL(true); setO(''); setS('Connecting…'); setSt('s-load');
+    try{
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({api_key:key,...body})});
+      if(!res.ok){const d=await res.json();setS(d.error||'Request failed');setSt('s-err');return;}
+      setS('Generating…'); setSt('s-load');
+      const reader=res.body.getReader(); const dec=new TextDecoder(); let buf=''; let done_flag=false;
+      if(header) setO(header);
+      while(!done_flag){
+        const {done,value}=await reader.read(); if(done)break;
+        buf+=dec.decode(value,{stream:true});
+        const lines=buf.split('\n'); buf=lines.pop()||'';
+        for(const line of lines){
+          if(!line.startsWith('data:')) continue;
+          const p=line.slice(5).trim();
+          if(p==='[DONE]'){done_flag=true;break;}
+          try{
+            const d=JSON.parse(p);
+            if(d.error){setS(d.error);setSt('s-err');done_flag=true;break;}
+            else if(d.text){setO(x=>x+d.text);if(ref.current)ref.current.scrollTop=ref.current.scrollHeight;}
+          }catch{}
+        }
+      }
+      setS('✓ Done'); setSt('s-ok');
+    }catch(e){setS('Error: '+e.message); setSt('s-err');}
+    finally{setL(false);}
+  };
+
+  const run=()=>doStream(`${API}/groq`,{type:ptype},setOut,setLoading,setAiStatus,setAiStype,outRef,
+    `◈ NovaPulse AI  ·  ${new Date().toLocaleTimeString()}  ·  ${ptype}\n${'─'.repeat(48)}\n\n`);
+
+  const sendChat=()=>{
+    if(!chatQ.trim()||chatLoading) return;
+    const q=chatQ; setChatQ('');
+    doStream(`${API}/groq/chat`,{question:q},setChatOut,setChatLoading,setAiStatus,setAiStype,chatRef,
+      `◈ Q: ${q}\n${'─'.repeat(48)}\n\n`);
+  };
+
+  const opts=[
+    {k:'general',e:'🔧',l:'General Optimization',d:'Broad tips for your hardware'},
+    {k:'gaming', e:'🎮',l:'Gaming Performance',  d:`GPU Tier ${sys.gpu_tier}/5 focused`},
+    {k:'thermal',e:'🌡️',l:'Thermal & Cooling',   d:'Temp analysis & cooling'},
+    {k:'memory', e:'💾',l:'RAM & Storage',        d:'XMP, pagefile, drives'},
+    {k:'windows',e:'🪟',l:'Windows Tweaks',       d:'Registry, startup, services'},
+    {k:'power',  e:'⚡',l:'Power Settings',       d:'Power plans, CPU/GPU limits'},
+  ];
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.ai} AI Optimizer</div>
+      <div className="card" style={{marginBottom:12}}>
+        <div className="ch">
+          <div className="ct" style={{color:'var(--cyan)'}}>{I.ai} Groq API Key</div>
+          <a href="https://console.groq.com" target="_blank" style={{fontSize:9,color:'var(--txt2)',textDecoration:'none'}}>Get free key →</a>
+        </div>
+        <div className="cb">
+          <div className="key-row">
+            <input className="key-in" type={showK?'text':'password'} placeholder="gsk_..." value={key}
+              onChange={e=>setKey(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveKey()}/>
+            <button className="key-btn" onClick={()=>setShowK(!showK)}>{showK?'Hide':'Show'}</button>
+            <button className="key-btn" onClick={saveKey}>Save</button>
+          </div>
+          {keySaveMsg&&<div style={{fontSize:10,color:keySaveMsg.startsWith('✓')?'var(--green)':'var(--red)',marginBottom:6}}>{keySaveMsg}</div>}
+          <div className={`status ${aiStype}`}>{aiStatus}</div>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:12}}>
+        <div className="ch"><div className="ct" style={{color:'var(--violet2)'}}>{I.chat} Ask a PC Question</div>
+          <span style={{fontSize:9,color:'var(--txt2)'}}>PC topics only · Enter to send</span>
+        </div>
+        <div className="cb">
+          <div className="chat-wrap">
+            <div className="chat-row">
+              <textarea className="chat-in" rows={2}
+                placeholder="e.g. Is my CPU bottlenecking my GPU? Should I enable XMP? Best settings for CS2?"
+                value={chatQ} onChange={e=>setChatQ(e.target.value)}
+                onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}}/>
+              <button className="chat-send" onClick={sendChat} disabled={chatLoading||!chatQ.trim()}>
+                {chatLoading?<span className="spinner"/>:'SEND'}
+              </button>
+            </div>
+            {chatOut&&<div ref={chatRef} className="ai-out" style={{minHeight:80,marginTop:8}}>{chatOut}</div>}
+          </div>
+        </div>
+      </div>
+
+      <div className="opt-grid">
+        {opts.map(o=>(
+          <button key={o.k} className={`opt-btn${ptype===o.k?' sel':''}`} onClick={()=>setPtype(o.k)}>
+            <div style={{fontWeight:700,marginBottom:2}}>{o.e} {o.l}</div>
+            <div style={{fontSize:8,color:'var(--txt2)'}}>{o.d}</div>
+          </button>
+        ))}
+      </div>
+      <button className="run-btn" onClick={run} disabled={loading}>
+        {loading&&<span className="spinner"/>}
+        {loading?'ANALYZING…':'▶  ANALYZE WITH GROQ AI'}
+      </button>
+      <div ref={outRef} className="ai-out">
+        {out||<span style={{color:'var(--txt2)',fontSize:10}}>{'Results appear here after analysis…\n\nThe AI analyzes your exact hardware:\nGPU: '+sys.gpu_name+'\nCPU: '+sys.cpu_name}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ─── BENCHMARK ───────────────────────────────────────────────────────────── */
+function Benchmark({sys}){
+  const [scores,setScores]=useState(null);
+  const [err,setErr]=useState('');
+  const load=()=>{
+    setErr(''); setScores(null);
+    fetch(`${API}/benchmark`).then(r=>r.json()).then(setScores).catch(e=>setErr(e.message));
+  };
+  useEffect(()=>{load();},[]);
+  if(err) return(
+    <div className="fade-in">
+      <div className="ptitle">{I.bm} Benchmark</div>
+      <div style={{color:'var(--red)',fontSize:11,marginBottom:10}}>Error: {err}</div>
+      <button className="run-btn" onClick={load}>Retry</button>
+    </div>
+  );
+  if(!scores) return <div className="fade-in"><div className="ptitle">{I.bm} Benchmark</div><div style={{color:'var(--txt2)',fontSize:11}}>Loading…</div></div>;
+  const overall=scores.overall;
+  const col=overall>=75?'#00e5ff':overall>=50?'#00e596':overall>=30?'#fbbf24':'#f43f5e';
+  const grade=overall>=85?'S':overall>=70?'A':overall>=55?'B':overall>=40?'C':overall>=25?'D':'F';
+  const items=[
+    {l:'CPU Score',  v:scores.cpu,  col:'#00e5ff', desc:sys.cpu_name},
+    {l:'GPU Score',  v:scores.gpu,  col:'#9f5ff7', desc:sys.gpu_name},
+    {l:'RAM Score',  v:scores.ram,  col:'#00e596', desc:`${sys.ram_gb}GB ${sys.ram_type||''}`},
+  ];
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.bm} Benchmark Scores</div>
+      <div className="bm-grid">
+        <div className="card bm-overall">
+          <div className="bm-big" style={{color:col}}>{overall}</div>
+          <div className="bm-desc">
+            <div className="bm-title" style={{color:col}}>OVERALL — GRADE {grade}</div>
+            <div className="bm-sub">
+              <div>Bottleneck: <span style={{color:scores.bottleneck==='Balanced'?'#00e596':'#fbbf24'}}>{scores.bottleneck}</span></div>
+              <div style={{marginTop:4,wordBreak:'break-word'}}>{sys.cpu_name}</div>
+              <div style={{wordBreak:'break-word'}}>{sys.gpu_name}</div>
+              <div>{sys.ram_gb}GB {sys.ram_type}</div>
+            </div>
+          </div>
+          <div style={{fontSize:64,opacity:.1,fontFamily:'Rajdhani,sans-serif',fontWeight:700,lineHeight:1,flexShrink:0}}>{grade}</div>
+        </div>
+        {items.map(it=>(
+          <div key={it.l} className="card bm-card">
+            <div className="bm-lbl">{it.l}</div>
+            <div className="bm-score" style={{color:it.col}}>{it.v}<span style={{fontSize:16,color:'var(--txt2)'}}>/100</span></div>
+            <div style={{fontSize:9,color:'var(--txt2)',marginTop:4,marginBottom:6,wordBreak:'break-word'}}>{(it.desc||'').slice(0,40)}</div>
+            <div className="bm-bar"><div className="bm-fill" style={{width:`${it.v}%`,background:it.col}}/></div>
+          </div>
+        ))}
+      </div>
+      <div className="card">
+        <div className="ch"><div className="ct">Performance Tiers</div></div>
+        <div className="cb">
+          {[['S / A  (75–100)','Enthusiast — 1440p Ultra, solid 4K gaming'],
+            ['B  (55–74)','High End — 1080p Ultra, 1440p High'],
+            ['C  (40–54)','Mid Range — 1080p High/Ultra, some 1440p'],
+            ['D  (25–39)','Mid-Low — 1080p medium settings'],
+            ['F  (0–24)','Entry/Integrated — web, office, light tasks'],
+          ].map(([tier,desc])=>(
+            <div key={tier} className="sr">
+              <span className="sk" style={{fontFamily:'Rajdhani,sans-serif',fontSize:13,fontWeight:700}}>{tier}</span>
+              <span className="sv" style={{fontSize:9,color:'var(--txt1)'}}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── HISTORY ─────────────────────────────────────────────────────────────── */
+function History(){
+  const [data,setData]=useState([]);
+  const [window_,setWindow]=useState(60);
+  const [width,setWidth]=useState(600);
+  const wrapRef=useRef(null);
+  const svgH=100, pad={l:30,r:8,t:10,b:20};
+
+  useEffect(()=>{
+    const go=()=>fetch(`${API}/history`).then(r=>r.json()).then(setData).catch(()=>{});
+    go(); const id=setInterval(go,2000); return()=>clearInterval(id);
+  },[]);
+
+  useEffect(()=>{
+    if(!wrapRef.current) return;
+    const ro=new ResizeObserver(entries=>{
+      const w=entries[0].contentRect.width;
+      if(w>0) setWidth(Math.floor(w));
+    });
+    ro.observe(wrapRef.current);
+    return()=>ro.disconnect();
+  },[]);
+
+  const slice=data.slice(-window_);
+  const chartW=width-pad.l-pad.r;
+  const chartH=svgH-pad.t-pad.b;
+
+  const mkPath=(key)=>{
+    if(slice.length<2) return null;
+    const pts=slice.map((d,i)=>{
+      const x=pad.l+(i/(slice.length-1))*chartW;
+      const y=pad.t+chartH-(Math.min(100,d[key]||0)/100)*chartH;
+      return [x,y];
+    });
+    const line='M '+pts.map(p=>p.join(',')).join(' L ');
+    const fill=`M ${pad.l},${pad.t+chartH} L `+pts.map(p=>p.join(',')).join(' L ')+` L ${pad.l+chartW},${pad.t+chartH} Z`;
+    return {line,fill};
+  };
+
+  const series=[
+    {key:'cpu',col:'#00e5ff',label:'CPU'},
+    {key:'ram',col:'#00e596',label:'RAM'},
+    {key:'gpu',col:'#9f5ff7',label:'GPU'},
+  ];
+  const gridLines=[0,25,50,75,100];
+  const last=slice[slice.length-1]||{cpu:0,ram:0,gpu:0};
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.hist} Performance History</div>
+      <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12,flexWrap:'wrap'}}>
+        {[['1m',60],['2m',120],['5m',300]].map(([l,v])=>(
+          <button key={v} className={`hist-btn${window_===v?' active':''}`} onClick={()=>setWindow(v)}>{l}</button>
+        ))}
+        <span style={{fontSize:9,color:'var(--txt2)',marginLeft:4}}>{slice.length} samples</span>
+        <div style={{marginLeft:'auto',display:'flex',gap:14}}>
+          {series.map(s=>(
+            <div key={s.key} style={{display:'flex',alignItems:'center',gap:5}}>
+              <div style={{width:10,height:3,background:s.col,borderRadius:1,flexShrink:0}}/>
+              <span style={{fontSize:9,color:'var(--txt2)'}}>{s.label}</span>
+              <span style={{fontFamily:'Rajdhani,sans-serif',fontSize:14,fontWeight:700,color:s.col}}>{last[s.key]||0}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div ref={wrapRef}>
+        {series.map(s=>{
+          const path=mkPath(s.key);
+          const vals=slice.map(d=>d[s.key]||0);
+          const avg=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+          const max=vals.length?Math.round(Math.max(...vals)):0;
+          const min=vals.length?Math.round(Math.min(...vals)):0;
+          return (
+            <div key={s.key} className="hist-card">
+              {/* Stats row — plain HTML, no stretching */}
+              <div style={{display:'flex',gap:20,alignItems:'center',marginBottom:8,flexWrap:'wrap'}}>
+                {[['Current',last[s.key]||0,s.col],['Avg',avg,'var(--txt1)'],['Peak',max,vCol(max)],['Min',min,'var(--txt2)']].map(([lbl,val,col])=>(
+                  <div key={lbl} style={{display:'flex',flexDirection:'column',gap:1}}>
+                    <span style={{fontSize:8,color:'var(--txt2)',textTransform:'uppercase',letterSpacing:1}}>{lbl}</span>
+                    <span style={{fontFamily:'Rajdhani,sans-serif',fontSize:20,fontWeight:700,color:col,lineHeight:1}}>{val}%</span>
+                  </div>
+                ))}
+                <span style={{marginLeft:'auto',fontFamily:'Rajdhani,sans-serif',fontSize:13,fontWeight:700,letterSpacing:2,color:s.col}}>{s.label}</span>
+              </div>
+              {/* SVG chart — exact pixel dimensions, no aspect ratio distortion */}
+              <svg width={width} height={svgH} style={{display:'block',overflow:'visible'}}>
+                {gridLines.map(v=>{
+                  const y=pad.t+chartH*(1-v/100);
+                  return <g key={v}>
+                    <line x1={pad.l} y1={y} x2={pad.l+chartW} y2={y} stroke="var(--border)" strokeWidth=".5" strokeDasharray="3 5"/>
+                    <text x={pad.l-4} y={y+3} textAnchor="end" fontSize="8" fill="var(--txt2)" fontFamily="Space Mono,monospace">{v}</text>
+                  </g>;
+                })}
+                {path&&<>
+                  <defs>
+                    <linearGradient id={`hg${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={s.col} stopOpacity=".2"/>
+                      <stop offset="100%" stopColor={s.col} stopOpacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d={path.fill} fill={`url(#hg${s.key})`}/>
+                  <path d={path.line} fill="none" stroke={s.col} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round"/>
+                </>}
+                {/* Time labels — real pixel positions */}
+                {slice.length>1&&[0,.25,.5,.75,1].map(f=>{
+                  const idx=Math.floor(f*(slice.length-1));
+                  const pt=slice[idx]; if(!pt) return null;
+                  const x=pad.l+f*chartW;
+                  const label=new Date(pt.t*1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+                  return <text key={f} x={x} y={svgH-3} textAnchor="middle" fontSize="8" fill="var(--txt2)" fontFamily="Space Mono,monospace">{label}</text>;
+                })}
+              </svg>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── PROCESS MANAGER ─────────────────────────────────────────────────────── */
+function ProcessManager(){
+  const [procs,setProcs]=useState([]);
+  const [search,setSearch]=useState('');
+  const [sortKey,setSortKey]=useState('cpu');
+  const [sortDir,setSortDir]=useState(-1);
+  const [msg,setMsg]=useState('');
+  const [msgCol,setMsgCol]=useState('var(--green)');
+  const [prioPid,setPrioPid]=useState(null);
+
+  useEffect(()=>{
+    const go=()=>fetch(`${API}/processes`).then(r=>r.json()).then(setProcs).catch(()=>{});
+    go(); const id=setInterval(go,2000); return()=>clearInterval(id);
+  },[]);
+
+  const flash=(txt,ok)=>{setMsg(txt);setMsgCol(ok?'var(--green)':'var(--red)');setTimeout(()=>setMsg(''),2500);};
+
+  const kill=async(pid,name)=>{
+    if(!window.confirm(`Kill "${name}" (PID ${pid})?`)) return;
+    const r=await fetch(`${API}/processes/kill`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid})});
+    const d=await r.json();
+    if(d.ok) flash(`✓ Killed ${name}`,'ok');
+    else flash(`✗ ${d.error}`,'err');
+  };
+
+  const setPrio=async(pid,level)=>{
+    const r=await fetch(`${API}/processes/priority`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pid,level})});
+    const d=await r.json();
+    if(d.ok) flash(`✓ Priority set to ${level}`,'ok');
+    else flash(`✗ ${d.error}`,'err');
+    setPrioPid(null);
+  };
+
+  const toggleSort=(k)=>{
+    if(sortKey===k) setSortDir(d=>-d);
+    else{setSortKey(k);setSortDir(-1);}
+  };
+
+  const filtered=procs
+    .filter(p=>!search||p.name.toLowerCase().includes(search.toLowerCase())||String(p.pid).includes(search))
+    .sort((a,b)=>sortDir*(((a[sortKey]??0)>(b[sortKey]??0))?1:-1));
+
+  const Th=({k,l})=><th onClick={()=>toggleSort(k)}>{l} {sortKey===k?(sortDir<0?'▼':'▲'):''}</th>;
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.proc} Process Manager</div>
+      {msg&&<div style={{color:msgCol,fontSize:10,marginBottom:8}}>{msg}</div>}
+      <input className="pm-search" placeholder="Search by name or PID…" value={search} onChange={e=>setSearch(e.target.value)}/>
+      <div style={{fontSize:9,color:'var(--txt2)',marginBottom:10}}>{filtered.length} processes · click column header to sort</div>
+      <div style={{background:'var(--bg1)',border:'1px solid var(--border)',borderRadius:3,overflow:'hidden'}}>
+        <div style={{overflowX:'auto',maxHeight:520,overflowY:'auto'}}>
+          <table className="pm-table">
+            <thead style={{position:'sticky',top:0,zIndex:1}}>
+              <tr>
+                <Th k="name" l="Process"/><Th k="pid" l="PID"/>
+                <Th k="cpu" l="CPU %"/><Th k="mem" l="MEM %"/>
+                <Th k="threads" l="Threads"/><Th k="status" l="Status"/>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p=>(
+                <tr key={p.pid}>
+                  <td>
+                    <div className="pm-name" title={p.exe||p.name}>{p.name}</div>
+                    <div style={{fontSize:8,color:'var(--txt2)'}}>{p.user}</div>
+                  </td>
+                  <td><span style={{color:'var(--txt2)',fontSize:10}}>{p.pid}</span></td>
+                  <td>
+                    <span className="pm-val" style={{color:vCol(p.cpu*4)}}>{p.cpu}</span>
+                    <div className="pm-bar"><div className="pm-fill" style={{width:`${Math.min(100,p.cpu*4)}%`,background:vCol(p.cpu*4)}}/></div>
+                  </td>
+                  <td>
+                    <span className="pm-val" style={{color:vCol(p.mem*2)}}>{p.mem.toFixed(1)}</span>
+                    <div className="pm-bar"><div className="pm-fill" style={{width:`${Math.min(100,p.mem*2)}%`,background:vCol(p.mem*2)}}/></div>
+                  </td>
+                  <td><span style={{fontSize:10,color:'var(--txt2)'}}>{p.threads}</span></td>
+                  <td><span style={{fontSize:9,color:p.status==='running'?'var(--green)':'var(--txt2)'}}>{p.status}</span></td>
+                  <td>
+                    <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                      <button className="pm-btn" onClick={()=>kill(p.pid,p.name)}>Kill</button>
+                      <div style={{position:'relative'}}>
+                        <button className="pm-btn prio" onClick={()=>setPrioPid(prioPid===p.pid?null:p.pid)}>Prio</button>
+                        {prioPid===p.pid&&(
+                          <div style={{position:'absolute',top:'100%',right:0,background:'var(--bg3)',border:'1px solid var(--border)',borderRadius:3,zIndex:10,minWidth:100,marginTop:2}}>
+                            {['realtime','high','abovenormal','normal','belownormal','idle'].map(l=>(
+                              <div key={l} onClick={()=>setPrio(p.pid,l)}
+                                style={{padding:'6px 10px',fontSize:9,cursor:'pointer',color:'var(--txt1)'}}
+                                onMouseEnter={e=>e.target.style.color='var(--yellow)'}
+                                onMouseLeave={e=>e.target.style.color='var(--txt1)'}>{l}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SYSTEM CLEANER ──────────────────────────────────────────────────────── */
+function Cleaner(){
+  const [scan,setScan]=useState(null);
+  const [loading,setLoading]=useState(false);
+  const [cleaning,setCleaning]=useState(false);
+  const [checked,setChecked]=useState({});
+  const [result,setResult]=useState('');
+  const [ramMsg,setRamMsg]=useState('');
+
+  const doScan=async()=>{
+    setLoading(true); setResult('');
+    const d=await fetch(`${API}/cleaner/scan`).then(r=>r.json()).catch(()=>null);
+    if(d){
+      setScan(d);
+      const init={};
+      (d.dirs||[]).forEach(x=>{if(x.size_mb>0)init[x.path]=true;});
+      setChecked(init);
+    }
+    setLoading(false);
+  };
+
+  const doClean=async()=>{
+    const paths=Object.entries(checked).filter(([,v])=>v).map(([k])=>k);
+    if(!paths.length){setResult('No folders selected.');return;}
+    if(!window.confirm(`Clean ${paths.length} folder(s)? Files will be permanently deleted.`)) return;
+    setCleaning(true);
+    const d=await fetch(`${API}/cleaner/clean`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({paths})}).then(r=>r.json()).catch(()=>({error:'Request failed'}));
+    setCleaning(false);
+    if(d.error) setResult('✗ '+d.error);
+    else{
+      setResult(`✓ Freed ${d.freed_mb} MB`+(d.errors?.length?` (${d.errors.length} skipped)`:``));
+      doScan();
+    }
+  };
+
+  const flushRam=async()=>{
+    setRamMsg('Flushing…');
+    const d=await fetch(`${API}/cleaner/ram`,{method:'POST'}).then(r=>r.json()).catch(()=>({error:'Failed'}));
+    if(d.ok) setRamMsg(`✓ Done · ${d.ram_free_gb} GB now free`);
+    else setRamMsg('✗ '+d.error);
+    setTimeout(()=>setRamMsg(''),4000);
+  };
+
+  const totalSel=scan?scan.dirs.filter(x=>checked[x.path]).reduce((a,x)=>a+x.size_mb,0):0;
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.clean} System Cleaner</div>
+
+      {/* RAM Flush */}
+      <div className="cl-ram-box">
+        <div>
+          <div style={{fontWeight:700,fontSize:11,marginBottom:3}}>⚡ RAM Flush</div>
+          <div style={{fontSize:9,color:'var(--txt2)'}}>Free up memory by clearing process working sets</div>
+          {ramMsg&&<div style={{fontSize:10,color:'var(--green)',marginTop:4}}>{ramMsg}</div>}
+        </div>
+        <button className="key-btn" onClick={flushRam} style={{padding:'8px 16px',fontSize:10}}>Flush RAM</button>
+      </div>
+
+      {/* Temp Files */}
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch">
+          <div className="ct" style={{color:'var(--yellow)'}}>🗑 Temp & Cache Files</div>
+          {scan&&<span style={{fontSize:9,color:'var(--txt2)'}}>{scan.dirs.filter(x=>x.size_mb>0).length} locations found</span>}
+        </div>
+        <div className="cb">
+          {!scan&&<div style={{textAlign:'center',padding:'20px 0'}}>
+            <button className="launcher-scan-btn" onClick={doScan} disabled={loading}>
+              {loading?'Scanning…':'Scan for Junk Files'}
+            </button>
+          </div>}
+          {scan&&<>
+            {scan.dirs.map(x=>(
+              <div key={x.path} className="cl-row">
+                <input type="checkbox" className="cl-check"
+                  checked={!!checked[x.path]} onChange={e=>setChecked(p=>({...p,[x.path]:e.target.checked}))}/>
+                <div style={{flex:1}}>
+                  <div className="cl-name">{x.name}</div>
+                  <div style={{fontSize:8,color:'var(--txt2)',marginTop:1,wordBreak:'break-all'}}>{x.path}</div>
+                </div>
+                <span className="cl-count">{x.count} files</span>
+                <span className="cl-size" style={{color:x.size_mb>100?'var(--red)':x.size_mb>10?'var(--yellow)':'var(--txt1)'}}>{x.size_mb>=1?x.size_mb.toFixed(1)+' MB':x.size_mb===0?'—':(x.size_mb*1024).toFixed(0)+' KB'}</span>
+              </div>
+            ))}
+            <div className="cl-total">
+              <span>Selected: <b style={{color:'var(--txt0)'}}>{totalSel.toFixed(1)} MB</b></span>
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                {result&&<span style={{color:result.startsWith('✓')?'var(--green)':'var(--red)',fontSize:10}}>{result}</span>}
+                <button className="key-btn" onClick={doScan} style={{fontSize:9}}>Rescan</button>
+                <button className="run-btn" onClick={doClean} disabled={cleaning||!Object.values(checked).some(Boolean)} style={{padding:'8px 16px',fontSize:11}}>
+                  {cleaning?'Cleaning…':'Clean Selected'}
+                </button>
+              </div>
+            </div>
+          </>}
+        </div>
+      </div>
+
+      {/* Startup Items */}
+      {scan&&scan.startup&&scan.startup.length>0&&(
+        <div className="card">
+          <div className="ch"><div className="ct" style={{color:'var(--violet2)'}}>🚀 Startup Programs</div>
+            <span style={{fontSize:9,color:'var(--txt2)'}}>{scan.startup.length} items</span></div>
+          <div className="cb">
+            <div style={{fontSize:9,color:'var(--txt2)',marginBottom:8}}>These programs launch automatically with Windows. Disable unwanted ones via Task Manager → Startup tab.</div>
+            {scan.startup.map((s,i)=>(
+              <div key={i} className="startup-row">
+                <span className="startup-hive">{s.hive}</span>
+                <div>
+                  <div style={{fontWeight:600,fontSize:10,marginBottom:2}}>{s.name}</div>
+                  <div style={{fontSize:8,color:'var(--txt2)',wordBreak:'break-all'}}>{s.path}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── GAME LAUNCHER ───────────────────────────────────────────────────────── */
+function Launcher(){
+  const [games,setGames]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [search,setSearch]=useState('');
+  const [filter,setFilter]=useState('all');
+  const [msg,setMsg]=useState('');
+  const [launched,setLaunched]=useState(null);
+
+  const scan=async()=>{
+    setLoading(true); setMsg('');
+    const d=await fetch(`${API}/launcher/scan`).then(r=>r.json()).catch(()=>[]);
+    setGames(d); setLoading(false);
+    if(d.length===0) setMsg('No installed games found. Is Steam installed?');
+  };
+
+  useEffect(()=>{scan();},[]);
+
+  const launch=async(g)=>{
+    setLaunched(g.id);
+    const r=await fetch(`${API}/launcher/launch`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({launch:g.launch})}).then(r=>r.json()).catch(()=>({error:'Failed'}));
+    setTimeout(()=>setLaunched(null),2000);
+  };
+
+  const sources=[...new Set(games.map(g=>g.source))];
+  const filtered=games.filter(g=>{
+    if(filter!=='all'&&g.source!==filter) return false;
+    if(search&&!g.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.launch} Game Launcher</div>
+
+      <div className="gfilter" style={{marginBottom:14}}>
+        <input style={{flex:1,background:'var(--bg2)',border:'1px solid var(--border2)',color:'var(--txt0)',padding:'7px 11px',fontFamily:"'Space Mono',monospace",fontSize:10,outline:'none',borderRadius:2}}
+          placeholder={`Search ${games.length} installed games…`} value={search} onChange={e=>setSearch(e.target.value)}/>
+        <select className="pm-select" value={filter} onChange={e=>setFilter(e.target.value)}>
+          <option value="all">All Sources</option>
+          {sources.map(s=><option key={s} value={s}>{s}</option>)}
+        </select>
+        <button className="launcher-scan-btn" onClick={scan} disabled={loading} style={{padding:'7px 14px',fontSize:11}}>
+          {loading?'Scanning…':'Rescan'}
+        </button>
+      </div>
+
+      {msg&&<div style={{color:'var(--txt2)',fontSize:10,marginBottom:10}}>{msg}</div>}
+
+      {loading&&<div style={{color:'var(--txt2)',fontSize:10}}>Scanning Steam / Epic libraries…</div>}
+
+      {!loading&&filtered.length===0&&games.length>0&&<div style={{color:'var(--txt2)',fontSize:10}}>No games match your filter.</div>}
+
+      <div className="launcher-grid">
+        {filtered.map(g=>(
+          <div key={g.id} className="launcher-card" onClick={()=>launch(g)}>
+            {g.img
+              ? <img className="launcher-img" src={g.img} alt={g.name} loading="lazy" onError={e=>e.target.style.display='none'}/>
+              : <div className="launcher-img" style={{display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>🎮</div>
+            }
+            <div className="launcher-name" title={g.name}>{g.name}</div>
+            <div className="launcher-meta">
+              <span className={`launcher-src ${g.source.toLowerCase()}`}>{g.source}</span>
+              <span>{g.size_gb>0?g.size_gb+' GB':''}</span>
+            </div>
+            <div className="launcher-launch-btn">
+              {launched===g.id?'LAUNCHING…':'▶ PLAY'}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── MONITORS ────────────────────────────────────────────────────────────── */
+function Monitors(){
+  const [mons,setMons]=useState([]);
+  const [loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    fetch(`${API}/monitors`).then(r=>r.json()).then(d=>{setMons(d);setLoading(false);}).catch(()=>setLoading(false));
+  },[]);
+
+  const resLabel=(w,h)=>{
+    if(!w||!h) return '?';
+    if(w>=3840) return '4K';
+    if(w>=2560) return 'QHD';
+    if(w>=1920) return 'FHD';
+    if(w>=1280) return 'HD';
+    return `${w}×${h}`;
+  };
+
+  const diagInch=(wmm,hmm)=>{
+    if(!wmm||!hmm) return null;
+    return ((Math.sqrt(wmm*wmm+hmm*hmm))/25.4).toFixed(1);
+  };
+
+  return (
+    <div className="fade-in">
+      <div className="ptitle">{I.mon} Display & Monitors</div>
+      {loading&&<div style={{color:'var(--txt2)',fontSize:10}}>Detecting displays…</div>}
+      {!loading&&mons.length===0&&<div style={{color:'var(--txt2)',fontSize:10}}>No display info available.</div>}
+
+      <div className="mon-grid">
+        {mons.map((m,i)=>(
+          <div key={i} className={`mon-card${m.is_primary?' primary':''}`}>
+            {m.is_primary&&<div className="mon-primary-badge">PRIMARY</div>}
+            <div className="mon-name">{m.name||`Display ${i+1}`}</div>
+
+            {/* Resolution label */}
+            <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+              <div className="mon-res">{resLabel(m.width,m.height)}</div>
+              {m.refresh_hz&&<div className="mon-hz">{m.refresh_hz}Hz</div>}
+            </div>
+            {m.width&&m.height&&<div style={{fontSize:9,color:'var(--txt2)',marginBottom:8}}>{m.width} × {m.height}</div>}
+
+            {/* Simple display diagram */}
+            <div style={{margin:'8px 0'}}>
+              <svg viewBox="0 0 120 70" style={{width:'100%',maxWidth:120,display:'block'}}>
+                <rect x="5" y="5" width="110" height="55" rx="3" fill="none" stroke="var(--border2)" strokeWidth="1.5"/>
+                <rect x="10" y="10" width="100" height="45" fill="var(--bg3)"/>
+                {m.width&&m.height&&<>
+                  <text x="60" y="36" textAnchor="middle" fill="var(--cyan)" fontSize="8" fontFamily="Rajdhani,sans-serif" fontWeight="700">{m.width}×{m.height}</text>
+                  {m.refresh_hz&&<text x="60" y="46" textAnchor="middle" fill="var(--txt2)" fontSize="7" fontFamily="Space Mono,monospace">{m.refresh_hz}Hz</text>}
+                </>}
+                <rect x="50" y="60" width="20" height="4" rx="1" fill="var(--border2)"/>
+                <rect x="30" y="64" width="60" height="3" rx="1" fill="var(--border2)"/>
+              </svg>
+            </div>
+
+            <div className="mon-rows">
+              {m.refresh_hz&&<div className="mon-row">Refresh Rate <span style={{color:'var(--green)'}}>{m.refresh_hz} Hz</span></div>}
+              {diagInch(m.width_mm,m.height_mm)&&<div className="mon-row">Size <span>{diagInch(m.width_mm,m.height_mm)}"</span></div>}
+              {m.vram_mb>0&&<div className="mon-row">VRAM <span>{m.vram_mb} MB</span></div>}
+              {m.driver&&<div className="mon-row">Driver <span style={{fontSize:8}}>{m.driver}</span></div>}
+              <div className="mon-row">Position <span>{m.x},{m.y}</span></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop layout diagram */}
+      {mons.length>1&&<div className="card">
+        <div className="ch"><div className="ct">Desktop Layout</div></div>
+        <div className="cb" style={{overflowX:'auto'}}>
+          {(()=>{
+            const maxX=Math.max(...mons.map(m=>(m.x||0)+(m.width||1920)));
+            const maxY=Math.max(...mons.map(m=>(m.y||0)+(m.height||1080)));
+            const scale=500/maxX;
+            return(
+              <svg viewBox={`0 0 ${maxX*scale+10} ${maxY*scale+10}`} style={{width:'100%',maxHeight:200}}>
+                {mons.map((m,i)=>{
+                  const x=(m.x||0)*scale+5, y=(m.y||0)*scale+5;
+                  const w=(m.width||1920)*scale, h=(m.height||1080)*scale;
+                  const col=m.is_primary?'var(--cyan)':'var(--border2)';
+                  return<g key={i}>
+                    <rect x={x} y={y} width={w} height={h} fill="var(--bg3)" stroke={col} strokeWidth="1.5" rx="2"/>
+                    <text x={x+w/2} y={y+h/2-4} textAnchor="middle" fill={col} fontSize="10" fontFamily="Rajdhani,sans-serif" fontWeight="700">Display {i+1}</text>
+                    {m.width&&m.height&&<text x={x+w/2} y={y+h/2+8} textAnchor="middle" fill="var(--txt2)" fontSize="8" fontFamily="Space Mono,monospace">{m.width}×{m.height}</text>}
+                  </g>;
+                })}
+              </svg>
+            );
+          })()}
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+/* ─── AUDIO MONITOR ───────────────────────────────────────────────────────── */
+/* ─── AUDIO HELPERS (top-level) ──────────────────────────────────────────── */
+function VuMeter({volPct, muted}){
+  const canvasL=useRef(null), canvasR=useRef(null);
+  const animRef=useRef(null), tRef=useRef(0);
+
+  useEffect(()=>{
+    const segs=20, segH=5, gap=2, w=20;
+    const totalH=segs*(segH+gap);
+    [canvasL,canvasR].forEach(cr=>{ if(cr.current){cr.current.width=w;cr.current.height=totalH;}});
+
+    const draw=()=>{
+      tRef.current+=0.06;
+      const base=(muted?0:volPct)/100;
+      const vals=[
+        Math.max(0,Math.min(1,base*0.9+Math.sin(tRef.current*2.1)*0.07+Math.random()*0.03)),
+        Math.max(0,Math.min(1,base*0.9+Math.sin(tRef.current*1.7+1)*0.07+Math.random()*0.03)),
+      ];
+      [canvasL,canvasR].forEach((cr,ci)=>{
+        const ctx=cr.current?.getContext('2d'); if(!ctx) return;
+        ctx.clearRect(0,0,w,totalH);
+        const v=vals[ci];
+        for(let i=0;i<segs;i++){
+          const thresh=i/segs;
+          const active=v>thresh;
+          ctx.fillStyle=active?(i>=segs*0.85?'#f43f5e':i>=segs*0.65?'#fbbf24':'#00e596'):'#1a1f35';
+          const y=totalH-(i+1)*(segH+gap);
+          ctx.beginPath(); ctx.rect(0,y,w,segH); ctx.fill();
+        }
+      });
+      animRef.current=requestAnimationFrame(draw);
+    };
+    animRef.current=requestAnimationFrame(draw);
+    return()=>cancelAnimationFrame(animRef.current);
+  },[volPct, muted]);
+
+  const segs=20, segH=5, gap=2, totalH=segs*(segH+gap);
+  return(
+    <div style={{display:'flex',gap:8,alignItems:'flex-end'}}>
+      {[['L',canvasL],['R',canvasR]].map(([lbl,ref])=>(
+        <div key={lbl} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+          <canvas ref={ref} style={{display:'block'}}/>
+          <span style={{fontSize:8,color:'var(--txt2)',letterSpacing:1}}>{lbl}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AudioMonitor(){
+  const [audio,setAudio]=useState({devices:[],master_volume:null,master_muted:false});
+  const [vol,setVol]=useState(50);
+  const [dragging,setDragging]=useState(false);
+  const [msg,setMsg]=useState('');
+  const [msgOk,setMsgOk]=useState(true);
+
+  useEffect(()=>{
+    const go=()=>fetch(`${API}/audio`).then(r=>r.json()).then(d=>{
+      setAudio(d);
+      if(!dragging && d.master_volume!=null) setVol(d.master_volume);
+    }).catch(()=>{});
+    go(); const id=setInterval(go,3000); return()=>clearInterval(id);
+  },[dragging]);
+
+  const flash=(txt,ok=true)=>{ setMsg(txt); setMsgOk(ok); setTimeout(()=>setMsg(''),2500); };
+
+  const applyVol=async(v)=>{
+    const r=await fetch(`${API}/audio/volume`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({volume:v})}).then(r=>r.json()).catch(()=>({ok:false,error:'Request failed'}));
+    if(r.ok) flash(`✓ Volume set to ${v}%`);
+    else flash(`✗ ${r.error||'Failed — try running as admin'}`,false);
+  };
+
+  const toggleMute=async()=>{
+    const mute=!audio.master_muted;
+    const r=await fetch(`${API}/audio/mute`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mute})}).then(r=>r.json()).catch(()=>({ok:false}));
+    if(r.ok) flash(mute?'✓ Muted':'✓ Unmuted');
+    else flash('✗ Could not toggle mute — try running as admin',false);
+  };
+
+  const volPct=vol??50;
+  const volCol=volPct>85?'#f43f5e':volPct>60?'#fbbf24':'#00e5ff';
+  const muted=audio.master_muted;
+  const presets=[{l:'Mute',v:0,col:'#f43f5e'},{l:'25%',v:25,col:'#fbbf24'},{l:'50%',v:50,col:'#fbbf24'},{l:'75%',v:75,col:'#00e596'},{l:'100%',v:100,col:'#00e5ff'}];
+
+  return(
+    <div className="fade-in">
+      <div className="ptitle">{I.aud} Audio Monitor</div>
+      {msg&&<div style={{color:msgOk?'var(--green)':'var(--red)',fontSize:10,marginBottom:8}}>{msg}</div>}
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch">
+          <div className="ct" style={{color:'var(--cyan)'}}>🔊 Master Volume</div>
+          <button onClick={toggleMute} style={{padding:'4px 12px',background:muted?'var(--red)22':'var(--bg4)',
+            border:`1px solid ${muted?'var(--red)':'var(--border2)'}`,color:muted?'var(--red)':'var(--txt2)',
+            fontFamily:"'Space Mono',monospace",fontSize:9,borderRadius:2,cursor:'pointer'}}>
+            {muted?'🔇 MUTED':'🔊 MUTE'}
+          </button>
+        </div>
+        <div className="cb">
+          <div style={{display:'flex',alignItems:'center',gap:20,marginBottom:14}}>
+            <VuMeter volPct={volPct} muted={muted}/>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:'Rajdhani,sans-serif',fontSize:56,fontWeight:700,
+                color:muted?'var(--txt2)':volCol,lineHeight:1,marginBottom:10}}>
+                {muted?<span style={{fontSize:32}}>MUTED</span>:`${volPct}%`}
+              </div>
+              <input type="range" min="0" max="100" value={volPct}
+                style={{width:'100%',accentColor:volCol,cursor:'pointer',height:6}}
+                onMouseDown={()=>setDragging(true)}
+                onTouchStart={()=>setDragging(true)}
+                onChange={e=>setVol(parseInt(e.target.value))}
+                onMouseUp={e=>{setDragging(false);applyVol(parseInt(e.target.value));}}
+                onTouchEnd={()=>{setDragging(false);applyVol(volPct);}}
+              />
+              <div style={{display:'flex',justifyContent:'space-between',fontSize:8,color:'var(--txt2)',marginTop:3}}>
+                <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+              </div>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:7}}>
+            {presets.map(p=>(
+              <button key={p.l} onClick={()=>{setVol(p.v);applyVol(p.v);}}
+                style={{flex:1,padding:'6px 0',background:'var(--bg3)',
+                  border:`1px solid ${volPct===p.v?p.col:'var(--border2)'}`,
+                  color:volPct===p.v?p.col:'var(--txt2)',
+                  fontFamily:"'Space Mono',monospace",fontSize:9,borderRadius:2,cursor:'pointer'}}>
+                {p.l}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch">
+          <div className="ct" style={{color:'var(--green)'}}>🎧 Playback Devices</div>
+          <span style={{fontSize:9,color:'var(--txt2)'}}>{audio.devices.length} detected</span>
+        </div>
+        <div className="cb">
+          {audio.devices.length===0&&<div style={{fontSize:10,color:'var(--txt2)',padding:'8px 0'}}>No devices detected. Windows only.</div>}
+          {audio.devices.map((d,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid var(--border)'}}>
+              <div style={{width:36,height:36,borderRadius:'50%',flexShrink:0,
+                background:d.is_default?'var(--cyan)22':'var(--bg3)',
+                border:`1px solid ${d.is_default?'var(--cyan)':'var(--border2)'}`,
+                display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}}>🔊</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,fontSize:11,color:d.is_default?'var(--cyan)':'var(--txt0)'}}>{d.name}</div>
+                <div style={{fontSize:9,color:'var(--txt2)',marginTop:2}}>{d.manufacturer||'Unknown manufacturer'}</div>
+              </div>
+              <div style={{textAlign:'right'}}>
+                {d.is_default&&<div style={{fontSize:8,color:'var(--cyan)',letterSpacing:1,marginBottom:4}}>DEFAULT</div>}
+                <div style={{fontSize:9,color:d.status==='OK'?'var(--green)':'var(--yellow)'}}>{d.status}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="ch"><div className="ct" style={{color:'var(--violet2)'}}>🎛 EQ Visualizer</div>
+          <span style={{fontSize:9,color:'var(--txt2)'}}>display only</span>
+        </div>
+        <div className="cb">
+          <div style={{display:'flex',gap:6,alignItems:'flex-end',height:60,padding:'4px 0'}}>
+            {[32,64,125,250,500,'1k','2k','4k','8k','16k'].map((freq,i)=>{
+              const col=i<3?'#00e5ff':i<6?'#00e596':i<8?'#fbbf24':'#9f5ff7';
+              const h=30+Math.sin(i*1.3+(volPct/10))*20+10;
+              return(
+                <div key={freq} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                  <div style={{width:'100%',background:col+'33',borderRadius:2,height:40,display:'flex',alignItems:'flex-end',overflow:'hidden'}}>
+                    <div style={{width:'100%',background:col,borderRadius:2,height:`${h}%`,transition:'height .5s ease'}}/>
+                  </div>
+                  <span style={{fontSize:7,color:'var(--txt2)'}}>{freq}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{fontSize:9,color:'var(--txt2)',marginTop:6}}>Use Windows Sound settings for real EQ control</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+function SettingToggle({label,desc,on,onChange}){
+  return(
+    <div className="set-row" onClick={()=>onChange(!on)} style={{cursor:'pointer'}}>
+      <div style={{flex:1}}>
+        <div className="set-lbl">{label}</div>
+        {desc&&<div className="set-desc">{desc}</div>}
+      </div>
+      <div className={`toggle${on?' on':''}`}><div className="tknob"/></div>
+    </div>
+  );
+}
+function SettingSelect({label,desc,value,options,onChange}){
+  return(
+    <div className="set-row">
+      <div style={{flex:1}}>
+        <div className="set-lbl">{label}</div>
+        {desc&&<div className="set-desc">{desc}</div>}
+      </div>
+      <select className="set-sel" value={value}
+        onChange={e=>{e.stopPropagation();onChange(e.target.value);}}>
+        {options.map(([v,l])=><option key={v} value={v}>{l}</option>)}
+      </select>
+    </div>
+  );
+}
+
+function Settings({sys,stats,cfg,onCfgChange}){
+  const [saved,setSaved]=useState('');
+  const [accentCol,setAccentCol]=useState(cfg.accent_color||'#00e5ff');
+
+  const patch=async(key,val)=>{
+    onCfgChange(key,val);
+    try{
+      await fetch(`${API}/config`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({[key]:val})});
+      setSaved('✓ Saved');setTimeout(()=>setSaved(''),1500);
+    }catch{}
+  };
+
+  const applyAccent=(col)=>{
+    setAccentCol(col);
+    document.documentElement.style.setProperty('--cyan',col);
+    patch('accent_color',col);
+  };
+
+  const exportData=()=>{
+    const blob=new Blob([JSON.stringify({system:sys,snapshot:stats,exported:new Date().toISOString()},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=`novapulse_${Date.now()}.json`;a.click();
+  };
+
+  const g=(k,def)=>cfg[k]??def;
+  const accents=['#00e5ff','#00e596','#9f5ff7','#f43f5e','#fbbf24','#ff6b35','#ec4899','#38bdf8'];
+
+  return(
+    <div className="fade-in">
+      <div className="ptitle">{I.set} Settings</div>
+      {saved&&<div style={{color:'var(--green)',fontSize:10,marginBottom:8,textAlign:'right'}}>{saved}</div>}
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch"><div className="ct" style={{color:'var(--cyan)'}}>🎨 Display</div></div>
+        <div className="cb">
+          <SettingToggle label="Show CPU Core Breakdown" desc="Per-core bars in Monitor tab"
+            on={g('show_cores',true)} onChange={v=>patch('show_cores',v)}/>
+          <SettingToggle label="Show Process List" desc="Top processes in Monitor tab"
+            on={g('show_procs',true)} onChange={v=>patch('show_procs',v)}/>
+          <SettingToggle label="Show Network Speed" desc="Upload/download on Overview"
+            on={g('show_network',true)} onChange={v=>patch('show_network',v)}/>
+          <SettingSelect label="Temperature Unit" value={g('temp_unit','C')}
+            options={[['C','Celsius (°C)'],['F','Fahrenheit (°F)']]}
+            onChange={v=>patch('temp_unit',v)}/>
+          <SettingSelect label="FPS Target" desc="Highlight games hitting this target"
+            value={g('fps_target','60')}
+            options={[['30','30 FPS'],['60','60 FPS'],['120','120 FPS'],['144','144 FPS'],['165','165 FPS'],['240','240 FPS']]}
+            onChange={v=>patch('fps_target',v)}/>
+          <div className="set-row">
+            <div style={{flex:1}}><div className="set-lbl">Accent Color</div><div className="set-desc">UI highlight color — takes effect immediately</div></div>
+            <div style={{display:'flex',gap:5}}>
+              {accents.map(c=>(
+                <div key={c} onClick={()=>applyAccent(c)}
+                  style={{width:16,height:16,borderRadius:'50%',background:c,cursor:'pointer',
+                    border:accentCol===c?'2px solid #fff':'2px solid transparent',flexShrink:0}}/>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch"><div className="ct" style={{color:'var(--green)'}}>📊 Monitoring</div></div>
+        <div className="cb">
+          <SettingSelect label="Poll Rate" desc="How often live stats refresh"
+            value={g('poll_rate','1000')}
+            options={[['500','500ms'],['1000','1s (default)'],['2000','2s'],['5000','5s']]}
+            onChange={v=>patch('poll_rate',v)}/>
+          <SettingSelect label="Process Count" desc="Processes shown in Monitor tab"
+            value={g('proc_count','8')}
+            options={[['5','5'],['8','8 (default)'],['12','12'],['20','20']]}
+            onChange={v=>patch('proc_count',v)}/>
+          <SettingToggle label="GPU Monitoring" desc="PowerShell polling every 10s on Windows"
+            on={g('gpu_enabled',true)} onChange={v=>patch('gpu_enabled',v)}/>
+          <SettingToggle label="Temperature Monitoring" desc="WMI sensor reading on Windows"
+            on={g('temp_enabled',true)} onChange={v=>patch('temp_enabled',v)}/>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch"><div className="ct" style={{color:'var(--yellow)'}}>🔔 Alerts</div><span style={{fontSize:9,color:'var(--txt2)'}}>browser notifications</span></div>
+        <div className="cb">
+          <SettingToggle label="CPU Alert" desc="Notify when CPU usage spikes"
+            on={g('alert_cpu',true)} onChange={v=>patch('alert_cpu',v)}/>
+          <SettingSelect label="CPU Threshold" value={g('alert_cpu_pct','85')}
+            options={[['70','70%'],['80','80%'],['85','85% (default)'],['90','90%'],['95','95%']]}
+            onChange={v=>patch('alert_cpu_pct',v)}/>
+          <SettingToggle label="RAM Alert" desc="Notify when RAM usage is high"
+            on={g('alert_ram',true)} onChange={v=>patch('alert_ram',v)}/>
+          <SettingSelect label="RAM Threshold" value={g('alert_ram_pct','85')}
+            options={[['70','70%'],['80','80%'],['85','85% (default)'],['90','90%'],['95','95%']]}
+            onChange={v=>patch('alert_ram_pct',v)}/>
+          <SettingToggle label="Temperature Alert" desc="Notify on high temps"
+            on={g('alert_temp',true)} onChange={v=>patch('alert_temp',v)}/>
+          <SettingSelect label="Temp Threshold" value={g('alert_temp_c','85')}
+            options={[['70','70°C'],['75','75°C'],['80','80°C'],['85','85°C (default)'],['90','90°C'],['95','95°C']]}
+            onChange={v=>patch('alert_temp_c',v)}/>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch"><div className="ct" style={{color:'var(--violet2)'}}>💾 Data</div></div>
+        <div className="cb">
+          <div className="set-row">
+            <div style={{flex:1}}><div className="set-lbl">Export Snapshot</div><div className="set-desc">Save current stats as JSON</div></div>
+            <button className="key-btn" onClick={exportData}>Export</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:10}}>
+        <div className="ch"><div className="ct">🖥️ System Specs</div><span style={{fontSize:9,color:'var(--txt2)'}}>detected at launch</span></div>
+        <div className="cb">
+          <div className="spec-grid">
+            {[['CPU',sys.cpu_name],['Config',`${sys.cpu_cores}C/${sys.cpu_threads}T @ ${sys.cpu_freq_max}GHz`],
+              ['RAM',`${sys.ram_gb}GB ${sys.ram_type||''}`],['GPU',sys.gpu_name],
+              ['GPU Tier',`${sys.gpu_tier}/5`],['OS',sys.os||''],
+              ['Hostname',sys.hostname],['Arch',sys.arch],
+              ['Boot',sys.boot_time],['Uptime',sys.uptime],
+            ].map(([k,v])=>(
+              <div key={k} className="spec-item">
+                <div className="spec-k">{k}</div>
+                <div className="spec-v" style={{wordBreak:'break-word'}}>{v||'N/A'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="ch"><div className="ct">ℹ️ About</div></div>
+        <div className="cb">
+          <div className="spec-grid">
+            {[['Version','2.0.0'],['Backend','Flask + psutil'],
+              ['Frontend','React 18 + Babel'],['AI','Groq llama-3.1-8b'],
+              ['Games DB','219 titles'],['Port','7842'],
+            ].map(([k,v])=>(
+              <div key={k} className="spec-item"><div className="spec-k">{k}</div><div className="spec-v">{v}</div></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ─── APP ─────────────────────────────────────────────────────────────────── */
+function App(){
+  const [tab,setTab]=useState('overview');
+  const [sys,setSys]=useState({gpu_tier:1,disks:[],cpu_name:'...',gpu_name:'...'});
+  const [stats,setStats]=useState({cpu:0,ram:0,gpu:0,temps:{},processes:[],cpu_cores:[]});
+  const [games,setGames]=useState([]);
+  const [time,setTime]=useState(new Date());
+  const [ok,setOk]=useState(false);
+  const [cfg,setCfg]=useState({
+    show_cores:true,show_procs:true,show_network:true,
+    temp_unit:'C',fps_target:'60',poll_rate:'1000',proc_count:'8',
+    gpu_enabled:true,temp_enabled:true,
+    alert_cpu:true,alert_cpu_pct:'85',
+    alert_ram:true,alert_ram_pct:'85',
+    alert_temp:true,alert_temp_c:'85',
+    accent_color:'#00e5ff',
+  });
+  const alertedRef=useRef({});
+
+  // Load config once on mount
+  useEffect(()=>{
+    fetch(`${API}/config`).then(r=>r.json()).then(d=>{
+      if(d&&Object.keys(d).length) setCfg(prev=>({...prev,...d}));
+      if(d.accent_color) document.documentElement.style.setProperty('--cyan',d.accent_color);
+    }).catch(()=>{});
+  },[]);
+
+  const handleCfgChange=(key,val)=>{
+    setCfg(prev=>({...prev,[key]:val}));
+  };
+
+  useEffect(()=>{
+    if(window.__npLoaderDone) window.__npLoaderDone();
+    fetch(`${API}/system`).then(r=>r.json()).then(d=>{setSys(d);setOk(true);}).catch(()=>{});
+    fetch(`${API}/games`).then(r=>r.json()).then(d=>setGames(d.games||[])).catch(()=>{});
+  },[]);
+
+  // Respects poll_rate setting
+  useEffect(()=>{
+    const rate=parseInt(cfg.poll_rate)||1000;
+    const go=()=>fetch(`${API}/stats`).then(r=>r.json()).then(d=>{setStats(d);setOk(true);}).catch(()=>setOk(false));
+    go(); const id=setInterval(go,rate); return()=>clearInterval(id);
+  },[cfg.poll_rate]);
+
+  useEffect(()=>{const id=setInterval(()=>setTime(new Date()),1000);return()=>clearInterval(id);},[]);
+
+  // Browser notification alerts
+  useEffect(()=>{
+    const now=Date.now();
+    const check=(key,val,thresh,label)=>{
+      if(!cfg[key]) return;
+      const limit=parseInt(cfg[thresh])||85;
+      const alKey=key+thresh;
+      if(val>=limit){
+        if(!alertedRef.current[alKey]||now-alertedRef.current[alKey]>30000){
+          alertedRef.current[alKey]=now;
+          if(Notification.permission==='granted')
+            new Notification(`NovaPulse Alert: ${label}`,{body:`${label} at ${Math.round(val)}% (threshold ${limit}%)`,icon:''});
+        }
+      } else { delete alertedRef.current[alKey]; }
+    };
+    check('alert_cpu',stats.cpu||0,'alert_cpu_pct','CPU Usage');
+    check('alert_ram',stats.ram||0,'alert_ram_pct','RAM Usage');
+    const maxTemp=Math.max(0,...Object.values(stats.temps||{}));
+    if(maxTemp>0) check('alert_temp',maxTemp,'alert_temp_c','Temperature');
+  },[stats,cfg]);
+
+  // Request notification permission once
+  useEffect(()=>{
+    if(Notification.permission==='default') Notification.requestPermission();
+  },[]);
+
+  const nav=[
+    {k:'overview',  l:'Overview',    i:I.lay},
+    {k:'monitor',   l:'Monitor',     i:I.cpu},
+    {k:'history',   l:'History',     i:I.hist},
+    {k:'games',     l:'Games',       i:I.gam, b:games.length||''},
+    {k:'launcher',  l:'Launcher',    i:I.launch},
+    {k:'benchmark', l:'Benchmark',   i:I.bm},
+    {k:'processes', l:'Processes',   i:I.proc},
+    {k:'cleaner',   l:'Cleaner',     i:I.clean},
+    {k:'monitors',  l:'Displays',    i:I.mon},
+    {k:'audio',     l:'Audio',       i:I.aud},
+    {k:'ai',        l:'AI Optimizer',i:I.ai},
+    {k:'settings',  l:'Settings',    i:I.set},
+  ];
+
+  // Temp display helper respecting unit setting
+  const fmtTemp=(t)=>t==null?'—':cfg.temp_unit==='F'?`${Math.round(t*9/5+32)}°F`:`${t}°C`;
+
+  return <>
+    <div className="topbar">
+      <div className="logo">{I.logo} NovaPulse <span className="logo-sub">2.0</span></div>
+      <div className="topbar-r">
+        {ok?<><div className="live-dot"/><span style={{fontSize:10,color:'var(--green)'}}>LIVE</span></>
+          :<span style={{fontSize:10,color:'var(--red)',animation:'pulse 1s infinite'}}>CONNECTING…</span>}
+        <div className="tb-stat">CPU <span className="tb-val" style={{color:vCol(stats.cpu||0)}}>{Math.round(stats.cpu||0)}%</span></div>
+        <div className="tb-stat">RAM <span className="tb-val" style={{color:vCol(stats.ram||0)}}>{Math.round(stats.ram||0)}%</span></div>
+        {(stats.gpu_temp||0)>0&&<div className="tb-stat">GPU <span className="tb-val">{fmtTemp(stats.gpu_temp)}</span></div>}
+        <div className="tb-time">{time.toLocaleTimeString()}</div>
+      </div>
+    </div>
+    <div className="layout">
+      <div className="sidebar">
+        <div className="nav-sect">Menu</div>
+        {nav.map(n=>(
+          <div key={n.k} className={`nav-item${tab===n.k?' active':''}`} onClick={()=>setTab(n.k)}>
+            {n.i}{n.l}{n.b?<span className="nav-badge">{n.b}</span>:null}
+          </div>
+        ))}
+        <div className="nav-div"/>
+        <div className="tier-box">
+          <div className="tier-lbl">GPU Tier</div>
+          <div className="tier-stars" style={{color:TCOLS[sys.gpu_tier||1]}}>{'★'.repeat(sys.gpu_tier||1)}{'☆'.repeat(5-(sys.gpu_tier||1))}</div>
+          <div className="tier-name" style={{color:TCOLS[sys.gpu_tier||1]}}>{TNAMES[sys.gpu_tier||1]||'...'}</div>
+          <div className="tier-gpu">{(sys.gpu_name||'Detecting…').slice(0,28)}</div>
+        </div>
+      </div>
+      <div className="main">
+        <div style={{display:tab==='overview'  ?'block':'none'}}><Overview  sys={sys} stats={stats} cfg={cfg} fmtTemp={fmtTemp}/></div>
+        <div style={{display:tab==='monitor'   ?'block':'none'}}><Monitor   sys={sys} stats={stats} cfg={cfg} fmtTemp={fmtTemp}/></div>
+        <div style={{display:tab==='history'   ?'block':'none'}}><History/></div>
+        <div style={{display:tab==='games'     ?'block':'none'}}><Games     sys={sys} games={games} cfg={cfg}/></div>
+        <div style={{display:tab==='launcher'  ?'block':'none'}}><Launcher/></div>
+        <div style={{display:tab==='benchmark' ?'block':'none'}}><Benchmark sys={sys}/></div>
+        <div style={{display:tab==='processes' ?'block':'none'}}><ProcessManager/></div>
+        <div style={{display:tab==='cleaner'   ?'block':'none'}}><Cleaner/></div>
+        <div style={{display:tab==='monitors'  ?'block':'none'}}><Monitors/></div>
+        <div style={{display:tab==='audio'     ?'block':'none'}}><AudioMonitor/></div>
+        <div style={{display:tab==='ai'        ?'block':'none'}}><AI        sys={sys} stats={stats}/></div>
+        <div style={{display:tab==='settings'  ?'block':'none'}}><Settings  sys={sys} stats={stats} cfg={cfg} onCfgChange={handleCfgChange}/></div>
+      </div>
+    </div>
+  </>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
