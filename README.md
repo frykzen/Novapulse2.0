@@ -1,4 +1,4 @@
-# NovaPulse 2.0 — PC Performance Suite
+# SysScope 2.0 — PC Performance Suite
 
 Python backend + React frontend. 
 
@@ -7,7 +7,7 @@ install python with path
 ```
 pip install flask psutil groq
 cd Desktop
-cd Novapulse2.0-main
+cd SysScope2.0-main
 python server.py
 ```
 
